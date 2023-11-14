@@ -1,8 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:ryde_navi_app/constants/theme_data.dart';
 import 'package:ryde_navi_app/firebase_options.dart';
-import 'package:ryde_navi_app/screens/auth/auth_screen.dart';
+import 'package:ryde_navi_app/route/route.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,9 +18,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: themeData,
-      home: const AuthScreen(),
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        return PageTransition(
+          settings: settings,
+          child: AppPage.pages[settings.name]!,
+          type: PageTransitionType.rightToLeft,
+          duration: const Duration(milliseconds: 500),
+          reverseDuration: const Duration(milliseconds: 500),
+        );
+      },
     );
   }
 }

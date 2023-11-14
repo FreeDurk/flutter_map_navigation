@@ -16,33 +16,27 @@ class _AuthScreenState extends State<AuthScreen> {
   User? user;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: StreamBuilder<User?>(
-            stream: authRepo.authStateChanges,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const Center(
-                  child: Text("Error"),
-                );
-              }
+    return StreamBuilder<User?>(
+      stream: authRepo.authStateChanges,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text("Error"),
+          );
+        }
 
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
 
-              if (snapshot.hasData) {
-                return Dashboard(onSignOut: () async {
-                  await authRepo.logout();
-                });
-              } else {
-                return const SignIn();
-              }
-            },
-          ),
-        ),
-      ),
+        if (snapshot.hasData) {
+          return Dashboard(onSignOut: () async {
+            await authRepo.logout();
+          });
+        } else {
+          return const SignIn();
+        }
+      },
     );
   }
 }

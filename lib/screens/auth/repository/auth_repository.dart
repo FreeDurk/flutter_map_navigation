@@ -11,33 +11,29 @@ class AuthRepository {
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Future<User?> authenticate() async {
-  //   try {
-  //     final result = await _auth.signInWithEmailAndPassword(
-  //       email: auth.email,
-  //       password: auth.password,
-  //     );
-  //     return result.user;
-  //   } on FirebaseException catch (e) {
-  //     print(e.message.toString());
-  //   }
-  //   return null;
-  // }
+  Future<User?> authenticate({email, password}) async {
+    try {
+      final result = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return result.user;
+    } on FirebaseException catch (e) {
+      print(e.message.toString());
+    }
+    return null;
+  }
 
-  // Future<void> registration(RegistrationModel registrationModel) async {
-  //   try {
-  //     final response = await _auth.createUserWithEmailAndPassword(
-  //       email: registrationModel.email,
-  //       password: registrationModel.password,
-  //     );
-
-  //     if (response.user != null) {
-  //       // User user = response.user!;
-  //     }
-  //   } on FirebaseAuthException catch (e) {
-  //     print(e.message);
-  //   }
-  // }
+  Future<void> registration({email, password}) async {
+    try {
+      await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      print(e.message);
+    }
+  }
 
   Future<void> logout() async {
     await _auth.signOut();

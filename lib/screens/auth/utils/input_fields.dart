@@ -36,7 +36,13 @@ class _InputFieldsState extends State<InputFields> {
         const SizedBox(
           height: 10,
         ),
-        TextField(
+        TextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "Invalid ${widget.title.toLowerCase()}";
+            }
+            return null;
+          },
           controller: widget.controller,
           onChanged: widget.onChanged,
           obscureText: widget.isPassword,
