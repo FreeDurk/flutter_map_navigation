@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:ryde_navi_app/constants/theme_data.dart';
+
 import 'package:ryde_navi_app/screens/auth/repository/auth_repository.dart';
 import 'package:ryde_navi_app/screens/dashboard/map_screen.dart';
 import 'package:ryde_navi_app/screens/dashboard/services/location_service.dart';
+import 'package:ryde_navi_app/screens/dashboard/utils/location_search.dart';
+import 'package:ryde_navi_app/screens/drawer/drawer.dart';
 import 'package:ryde_navi_app/utils/loader.dart';
 
 class Dashboard extends StatefulWidget {
@@ -46,9 +48,25 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: primaryColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () async {
+              final searchResult = await showSearch(
+                context: context,
+                delegate: LocationSearch(),
+              );
+
+              if (searchResult != null && searchResult.isNotEmpty) {
+                print(searchResult);
+              }
+            },
+          ),
+        ],
       ),
+      drawer: const AppDrawer(),
       body: SafeArea(
         child: currentLocation != null ? const MapScreen() : const AppLoading(),
       ),

@@ -35,9 +35,16 @@ ThemeData themeData = ThemeData(
     titleLarge: TextStyle(fontSize: 36),
     titleMedium: TextStyle(fontSize: 26),
     titleSmall: TextStyle(fontSize: 16),
-    bodySmall: TextStyle(fontSize: 10),
+    bodySmall: TextStyle(
+      fontSize: 14,
+      color: Colors.white,
+      fontWeight: FontWeight.w400,
+    ),
     bodyMedium: TextStyle(
-        fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+      fontSize: 14,
+      fontWeight: FontWeight.w800,
+      color: Colors.white,
+    ),
     bodyLarge: TextStyle(fontSize: 26),
   ),
 );
