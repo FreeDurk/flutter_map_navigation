@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:ryde_navi_app/constants/theme_data.dart';
 import 'package:ryde_navi_app/firebase_options.dart';
@@ -8,6 +9,8 @@ import 'package:ryde_navi_app/route/route.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await dotenv.load(fileName: ".env");
+
   runApp(const MyApp());
 }
 

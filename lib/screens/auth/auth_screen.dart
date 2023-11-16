@@ -5,7 +5,7 @@ import 'package:ryde_navi_app/screens/auth/repository/auth_repository.dart';
 import 'package:ryde_navi_app/screens/dashboard/dashboard.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({Key? key}) : super(key: key);
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -13,7 +13,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final AuthRepository authRepo = AuthRepository();
-  User? user;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -29,14 +29,18 @@ class _AuthScreenState extends State<AuthScreen> {
           return const CircularProgressIndicator();
         }
 
-        if (snapshot.hasData) {
-          return Dashboard(onSignOut: () async {
-            await authRepo.logout();
-          });
-        } else {
-          return const SignIn();
-        }
+        return _buildAuthScreen(snapshot.data);
       },
     );
+  }
+
+  Widget _buildAuthScreen(User? user) {
+    if (user != null) {
+      return Dashboard(onSignOut: () async {
+        await authRepo.logout();
+      });
+    } else {
+      return const SignIn();
+    }
   }
 }
