@@ -108,17 +108,18 @@ class _SignInState extends State<SignIn> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       LoginIcons(
-                          image: "assets/images/facebook.png",
-                          onTap: () {
-                            print("test");
-                          }),
+                        image: "assets/images/facebook.png",
+                        onTap: () async {
+                          await authRepo.signInWithFacebook();
+                        },
+                      ),
                       const SizedBox(
                         width: 7,
                       ),
                       LoginIcons(
                         image: "assets/images/google.png",
                         onTap: () async {
-                          authRepo.signInWithGoogle();
+                          await authRepo.signInWithGoogle();
                         },
                       )
                     ],

@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -31,10 +32,29 @@ class AuthRepository {
     final GoogleSignInAccount? account = await googleSignIn.signIn();
 
     final GoogleSignInAuthentication auth = await account!.authentication;
-    final credentials = GoogleAuthProvider.credential(
+    final googleCredentials = GoogleAuthProvider.credential(
         accessToken: auth.accessToken, idToken: auth.idToken);
-    _auth.signInWithCredential(credentials);
-    ;
+    _auth.signInWithCredential(googleCredentials);
+  }
+
+  Future<void> signInWithFacebook() async {
+    try {
+      final LoginResult facebookLoginResult = await FacebookAuth.instance.login(
+        loginBehavior: LoginBehavior.dialogOnly,
+      );
+
+      if (facebookLoginResult.status == LoginStatus.success) {
+        final String accessToken = facebookLoginResult.accessToken!.token;
+        print(accessToken);
+        final OAuthCredential facebookCredentials =
+            FacebookAuthProvider.credential(accessToken);
+
+        await _auth.signInWithCredential(facebookCredentials);
+      }
+    } catch (e) {
+      print("======");
+      print(e.toString());
+    }
   }
 
   Future<void> registration({email, password}) async {
@@ -49,9 +69,18 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
+    final AccessToken? accessToken = await FacebookAuth.instance.accessToken;
+
     if (await GoogleSignIn().isSignedIn()) {
       await GoogleSignIn().disconnect();
+      return;
     }
+
+    if (accessToken != null) {
+      await FacebookAuth.instance.logOut();
+      return;
+    }
+
     await _auth.signOut();
   }
 }
