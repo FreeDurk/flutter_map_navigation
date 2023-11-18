@@ -28,9 +28,7 @@ class MapCalculations {
 
   double calculateZoomLevel(double distance, double screenWidth) {
     const double zoomFactor = 7.2;
-
     double zoomLevel = (log(screenWidth / distance) / log(2)) + zoomFactor;
-    print(zoomLevel);
     return zoomLevel;
   }
 }

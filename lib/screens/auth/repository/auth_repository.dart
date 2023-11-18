@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -24,6 +25,18 @@ class AuthRepository {
     return null;
   }
 
+  Future<void> signInWithGoogle() async {
+    GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
+
+    final GoogleSignInAccount? account = await googleSignIn.signIn();
+
+    final GoogleSignInAuthentication auth = await account!.authentication;
+    final credentials = GoogleAuthProvider.credential(
+        accessToken: auth.accessToken, idToken: auth.idToken);
+    _auth.signInWithCredential(credentials);
+    ;
+  }
+
   Future<void> registration({email, password}) async {
     try {
       await _auth.createUserWithEmailAndPassword(
@@ -36,6 +49,9 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
+    if (await GoogleSignIn().isSignedIn()) {
+      await GoogleSignIn().disconnect();
+    }
     await _auth.signOut();
   }
 }

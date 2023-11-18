@@ -27,11 +27,11 @@ class _DashboardState extends State<Dashboard> {
   final destinationController = StreamController<DestinationModel?>.broadcast();
   Set<Marker> markers = {};
   AppLocationService appLocationService = AppLocationService();
-
+  Future<void>? _mapSetupFuture;
   @override
   void initState() {
     super.initState();
-    mapSetup();
+    _mapSetupFuture = mapSetup();
   }
 
   @override
@@ -40,7 +40,7 @@ class _DashboardState extends State<Dashboard> {
     super.dispose();
   }
 
-  void mapSetup() async {
+  Future<void> mapSetup() async {
     if (await appLocationService.checkService()) {
       final location = await appLocationService.getLocation();
       setState(() {
@@ -64,12 +64,21 @@ class _DashboardState extends State<Dashboard> {
       ),
       drawer: const AppDrawer(),
       body: SafeArea(
-        child: currentLocation != null
-            ? MapScreen(
-                currentLocation: currentLocation!,
-                destinationStream: destinationController.stream,
-              )
-            : const AppLoading(),
+        child: FutureBuilder(
+          future: _mapSetupFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return currentLocation != null
+                  ? MapScreen(
+                      currentLocation: currentLocation!,
+                      destinationStream: destinationController.stream,
+                    )
+                  : const AppLoading();
+            } else {
+              return const AppLoading();
+            }
+          },
+        ),
       ),
     );
   }

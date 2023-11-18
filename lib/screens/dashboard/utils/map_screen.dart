@@ -52,6 +52,19 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     myPosition = widget.currentLocation!;
+
+    mapSetup();
+    subscriptionInitialized();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _animatedMapController.dispose();
+    destinationSubscription.cancel();
+  }
+
+  void subscriptionInitialized() {
     destinationSubscription =
         widget.destinationStream.listen((DestinationModel? destination) {
       if (destination != null) {
@@ -61,14 +74,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         });
       }
     });
-    mapSetup();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _animatedMapController.dispose();
-    destinationSubscription.cancel();
   }
 
   void mapSetup() async {
@@ -116,30 +121,59 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         locationStreamActive = true;
         myPosition = position;
         updateMarkerPosition(coords, 'currentPosition');
+
+        if (_reRouteDectected(position)) {
+          getPolylines();
+        }
       });
     });
+  }
+
+  _reRouteDectected(LocationData? position) {
+    if (position != null) {
+      double distance = double.infinity;
+      for (LatLng point in polylines) {
+        double currentDistance = calc.calculateDistance(
+            LatLng(position.latitude!, position.longitude!), point);
+        if (currentDistance < distance) {
+          distance = currentDistance;
+        }
+      }
+
+      double deviationThreshold = 0.05; // in kilometers
+
+      return distance > deviationThreshold;
+    }
+
+    return false;
   }
 
   void updateMarkerPosition(LatLng newPosition, String markerKey) {
     markers.removeWhere((marker) => marker.key == Key(markerKey));
     setMarkers(newPosition, Key(markerKey), MarkerPosition.myPosition);
+    _animatedMapController.mapController.move(newPosition, 16);
   }
 
   void resetMap() {
-    polylines.clear();
-    if (locationStreamActive) {
-      locationStream.cancel();
-    }
+    setState(() {
+      polylines.clear();
+      if (locationStreamActive) {
+        locationStream.cancel();
+      }
 
-    _animatedMapController.animateTo(
-      dest: LatLng(myPosition.latitude!, myPosition.longitude!),
-      zoom: 17.5,
-      rotation: 0,
-      curve: Curves.fastOutSlowIn,
-    );
+      destLocation = null;
+
+      _animatedMapController.animateTo(
+        dest: LatLng(myPosition.latitude!, myPosition.longitude!),
+        zoom: 17.5,
+        rotation: 0,
+        curve: Curves.fastOutSlowIn,
+      );
+    });
   }
 
   Future<void> getPolylines() async {
+    polylines.clear();
     double screenWidth = MediaQuery.of(context).size.width;
     PolylinePoints polylinePoints = PolylinePoints();
 
@@ -201,7 +235,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       children: [
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+          userAgentPackageName: 'com.example',
         ),
         MarkerLayer(
           markers: markers,
