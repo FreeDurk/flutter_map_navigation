@@ -76,7 +76,7 @@ class LocationSearch extends SearchDelegate<PlaceSuggestionModel?> {
             return ListTile(
               contentPadding: const EdgeInsets.only(left: 10),
               leading: Image.asset(
-                "assets/images/marker.png",
+                "assets/images/destinationLocation.png",
                 width: 40,
                 height: 40,
               ),
@@ -95,7 +95,6 @@ class LocationSearch extends SearchDelegate<PlaceSuggestionModel?> {
                     .copyWith(color: Colors.grey[500], fontSize: 10),
               ),
               onTap: () {
-                // query = suggestionList[index];
                 close(context, place);
               },
             );

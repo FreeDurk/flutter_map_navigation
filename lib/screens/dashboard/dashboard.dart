@@ -67,16 +67,16 @@ class _DashboardState extends State<Dashboard> {
         child: FutureBuilder(
           future: _mapSetupFuture,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return currentLocation != null
-                  ? MapScreen(
-                      currentLocation: currentLocation!,
-                      destinationStream: destinationController.stream,
-                    )
-                  : const AppLoading();
-            } else {
+            if (snapshot.connectionState == ConnectionState.waiting) {
               return const AppLoading();
             }
+
+            return currentLocation != null
+                ? MapScreen(
+                    currentLocation: currentLocation!,
+                    destinationStream: destinationController.stream,
+                  )
+                : const AppLoading();
           },
         ),
       ),

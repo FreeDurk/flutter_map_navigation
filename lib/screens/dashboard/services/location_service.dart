@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:easy_debounce/easy_debounce.dart';
 import 'package:location/location.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -72,42 +71,45 @@ class AppLocationService {
 
     final currentLocation = await getLocation();
 
-    EasyDebounce.debounce(
-      'search_place',
-      const Duration(seconds: 1),
-      () async {
-        final double? lat = currentLocation!.latitude;
-        final double? lng = currentLocation.longitude;
+    // EasyDebounce.debounce(
+    //   'search_place',
+    //   const Duration(microseconds: 300),
+    //   () async {
+    //     print("asdasda");
 
-        try {
-          final Uri uri = Uri.https(
-            "maps.googleapis.com",
-            "/maps/api/place/autocomplete/json",
-            {
-              'input': query,
-              'location': '$lat,$lng',
-              'components': 'country:PH',
-              'key': googleApiKey,
-            },
-          );
+    //   },
+    // );
 
-          final response = await http.get(uri);
+    final double? lat = currentLocation!.latitude;
+    final double? lng = currentLocation.longitude;
 
-          if (response.statusCode == 200) {
-            final List<PlaceSuggestionModel> suggestions =
-                (json.decode(response.body)['predictions'] as List)
-                    .map((data) => PlaceSuggestionModel.fromJson(data))
-                    .toList();
-            completer.complete(suggestions);
-          } else {
-            completer.completeError(Exception(
-                'Failed to load place suggestions: ${response.statusCode}'));
-          }
-        } catch (e) {
-          completer.completeError(e);
-        }
-      },
-    );
+    try {
+      final Uri uri = Uri.https(
+        "maps.googleapis.com",
+        "/maps/api/place/autocomplete/json",
+        {
+          'input': query,
+          'location': '$lat,$lng',
+          'components': 'country:PH',
+          'key': googleApiKey,
+        },
+      );
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final List<PlaceSuggestionModel> suggestions =
+            (json.decode(response.body)['predictions'] as List)
+                .map((data) => PlaceSuggestionModel.fromJson(data))
+                .toList();
+        completer.complete(suggestions);
+      } else {
+        completer.completeError(Exception(
+            'Failed to load place suggestions: ${response.statusCode}'));
+      }
+    } catch (e) {
+      completer.completeError(e);
+    }
 
     return completer.future;
   }
@@ -123,7 +125,6 @@ class AppLocationService {
 
     if (response.statusCode == 200) {
       final result = json.decode(response.body)['result'];
-
       return DestinationModel.fromJson(result);
     }
 

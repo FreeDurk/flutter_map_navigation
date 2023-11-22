@@ -22,8 +22,23 @@ class AppDrawer extends StatelessWidget {
               await authRepo.logout();
             },
             title: Text("Logout", style: Theme.of(context).textTheme.bodySmall),
-            leading: const Icon(Icons.logout),
-          )
+            leading: Image.asset(
+              "assets/images/logout.png",
+              height: 35,
+              width: 35,
+            ),
+          ),
+          ListTile(
+            onTap: () async {
+              print("peoples");
+            },
+            title: Text("Groups", style: Theme.of(context).textTheme.bodySmall),
+            leading: Image.asset(
+              "assets/images/peoples.png",
+              height: 45,
+              width: 45,
+            ),
+          ),
         ],
       ),
     );

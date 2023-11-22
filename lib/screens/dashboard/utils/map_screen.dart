@@ -47,6 +47,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
   late StreamSubscription<DestinationModel?> destinationSubscription;
   late DestinationModel? destLocation;
+  bool canStartStracking = false;
 
   @override
   void initState() {
@@ -59,9 +60,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    super.dispose();
     _animatedMapController.dispose();
     destinationSubscription.cancel();
+    locationStream.cancel();
+    super.dispose();
   }
 
   void subscriptionInitialized() {
@@ -70,7 +72,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       if (destination != null) {
         setState(() {
           destLocation = destination;
-          getPolylines();
+          canStartStracking = true;
         });
       }
     });
@@ -85,23 +87,20 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         initialCenter, const Key('currentPosition'), MarkerPosition.myPosition);
   }
 
-  void setMarkers(LatLng current, Key? key, MarkerPosition markerPosition) {
-    const double size = 70;
+  void setMarkers(LatLng position, Key? key, MarkerPosition markerPosition) {
+    const double size = 45;
     String asset = markerPosition == MarkerPosition.myPosition
         ? "assets/images/currentLocation.png"
-        : "assets/images/destination.png";
-
-    if (markerPosition != MarkerPosition.destination) {
-      markers.clear();
-    }
+        : "assets/images/destinationLocation.png";
 
     markers.add(
       Marker(
-        point: current,
+        height: size,
+        width: size,
+        key: key!,
+        point: position,
         child: Image.asset(
           asset,
-          height: size,
-          width: size,
         ),
       ),
     );
@@ -109,49 +108,62 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   void startTracking() {
-    Location location = Location();
-    location.changeSettings(
-      accuracy: LocationAccuracy.high,
-      interval: 1000,
-      distanceFilter: 0,
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Center(
+          child: Text("Started"),
+        ),
+      ),
     );
-    locationStream = location.onLocationChanged.listen((LocationData position) {
-      LatLng coords = LatLng(position.latitude!, position.longitude!);
-      setState(() {
-        locationStreamActive = true;
-        myPosition = position;
-        updateMarkerPosition(coords, 'currentPosition');
+    if (canStartStracking) {
+      Location location = Location();
+      location.changeSettings(
+        accuracy: LocationAccuracy.high,
+        interval: 1000,
+        distanceFilter: 0,
+      );
+      locationStream =
+          location.onLocationChanged.listen((LocationData position) {
+        LatLng coords = LatLng(position.latitude!, position.longitude!);
 
-        if (_reRouteDectected(position)) {
-          getPolylines();
+        if (mounted) {
+          setState(() {
+            locationStreamActive = true;
+            myPosition = position;
+            updateMarkerPosition(coords, 'currentPosition');
+          });
         }
       });
-    });
-  }
-
-  _reRouteDectected(LocationData? position) {
-    if (position != null) {
-      double distance = double.infinity;
-      for (LatLng point in polylines) {
-        double currentDistance = calc.calculateDistance(
-            LatLng(position.latitude!, position.longitude!), point);
-        if (currentDistance < distance) {
-          distance = currentDistance;
-        }
-      }
-
-      double deviationThreshold = 0.05; // in kilometers
-
-      return distance > deviationThreshold;
+      getPolylines();
     }
-
-    return false;
   }
+
+  // _reRouteDectected(LocationData? position) {
+  //   if (position != null) {
+  //     double distance = double.infinity;
+  //     for (LatLng point in polylines) {
+  //       double currentDistance = calc.calculateDistance(
+  //           LatLng(position.latitude!, position.longitude!), point);
+  //       if (currentDistance < distance) {
+  //         distance = currentDistance;
+  //       }
+  //     }
+
+  //     double deviationThreshold = 0.05; // in kilometers
+
+  //     return distance > deviationThreshold;
+  //   }
+
+  //   return false;
+  // }
 
   void updateMarkerPosition(LatLng newPosition, String markerKey) {
-    markers.removeWhere((marker) => marker.key == Key(markerKey));
+    _removeMarker(Key(markerKey));
     setMarkers(newPosition, Key(markerKey), MarkerPosition.myPosition);
-    _animatedMapController.mapController.move(newPosition, 16);
+  }
+
+  void _removeMarker(Key key) {
+    markers.removeWhere((marker) => marker.key == key);
   }
 
   void resetMap() {
@@ -162,13 +174,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       }
 
       destLocation = null;
-
+      _removeMarker(const Key('destinationMarker'));
       _animatedMapController.animateTo(
         dest: LatLng(myPosition.latitude!, myPosition.longitude!),
         zoom: 17.5,
         rotation: 0,
         curve: Curves.fastOutSlowIn,
       );
+      canStartStracking = false;
     });
   }
 
@@ -212,6 +225,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       const Key("destinationMarker"),
       MarkerPosition.destination,
     );
+
+    canStartStracking = true;
   }
 
   @override
@@ -259,37 +274,46 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        ElevatedButton(
-          onPressed: startTracking,
-          style: ElevatedButton.styleFrom(
-            shape: const CircleBorder(),
-            padding: const EdgeInsets.all(16.0),
-          ),
-          child: Image.asset(
-            "assets/images/tracking.png",
-            height: 30,
-            width: 30,
-          ),
+        _buildMapControllButton(
+          onPressed: canStartStracking ? startTracking : null,
+          assetPath: "assets/images/direction.png",
         ),
         const SizedBox(
           height: 12,
         ),
-        ElevatedButton(
+        _buildMapControllButton(
+          onPressed: () {
+            print('favourite');
+          },
+          assetPath: "assets/images/heart.png",
+        ),
+        const SizedBox(
+          height: 12,
+        ),
+        _buildMapControllButton(
           onPressed: resetMap,
-          style: ElevatedButton.styleFrom(
-            shape: const CircleBorder(),
-            padding: const EdgeInsets.all(14),
-          ),
-          child: Image.asset(
-            "assets/images/reset.png",
-            height: 30,
-            width: 30,
-          ),
+          assetPath: "assets/images/reset.png",
         ),
         const SizedBox(
           height: 25,
         ),
       ],
+    );
+  }
+
+  Widget _buildMapControllButton(
+      {required VoidCallback? onPressed, required String assetPath}) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(10),
+      ),
+      child: Image.asset(
+        assetPath,
+        height: 30,
+        width: 30,
+      ),
     );
   }
 }
