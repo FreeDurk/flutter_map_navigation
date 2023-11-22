@@ -2,4 +2,4 @@
 
 # App Recording
 
-<video src='https://drive.google.com/file/d/1And5gfQWmGNbtxFzPYIhlYL5FhkvrX55/view' width=180/>
+<video src='https://github.com/FreeDurk/ryde_navi_app/assets/75711556/953011f0-5692-4b69-9714-8a0143a889ef' width=180/>
